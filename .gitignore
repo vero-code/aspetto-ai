@@ -1,0 +1,24 @@
+# Node.js (frontend)
+node_modules/
+build/
+dist/
+
+# Python (backend)
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+
+# VSCode
+.vscode/
+
+# macOS
+.DS_Store
+
+# Log files
+*.log
+
+# System
+Thumbs.db
