@@ -22,3 +22,6 @@ __pycache__/
 
 # System
 Thumbs.db
+
+# Data
+fashion_sample.csv
