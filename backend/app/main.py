@@ -1,5 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from .vision_ai import analyze_image_bytes
+from .mongodb import collection
 
 app = FastAPI()
 
@@ -17,6 +19,22 @@ def read_root():
 
 @app.post("/analyze/")
 async def analyze_image(file: UploadFile = File(...)):
-    contents = await file.read()
-    print(f"📸 File received: {file.filename} ({len(contents)} byte)")
-    return {"result": "File accepted! AI processing coming soon 😉"}
+    print("📥 File received:", file.filename)
+
+    image_bytes = await file.read()
+    print("🧠 Passing an image to the Vision API...")
+
+    tags = analyze_image_bytes(image_bytes)
+    print("🏷️ Tags from Vision API:", tags)
+
+    doc = {
+        "image_filename": file.filename,
+        "tags": tags,
+        "vector": None
+    }
+
+    print("💾 Save the result in MongoDB...")
+    collection.insert_one(doc)
+
+    print("✅ Everything is ready. Return the result.")
+    return {"tags": tags}
