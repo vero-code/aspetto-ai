@@ -9,12 +9,19 @@ client = MongoClient(os.getenv("MONGO_URI"))
 db = client["aspetto_db"]
 collection = db["fashion_items"]
 
-df = pd.read_csv("data/fashion_sample.csv")
+deleted = collection.delete_many({})
+print(f"🗑️ Old documents removed: {deleted.deleted_count}")
+
+styles_df = pd.read_csv("data/styles_clean.csv")
+images_df = pd.read_csv("data/images.csv")
+
+images_df["id"] = images_df["filename"].str.replace(".jpg", "", regex=False).astype(int)
+merged_df = pd.merge(styles_df, images_df, on="id")
 
 items = []
-for _, row in df.iterrows():
+for _, row in merged_df.iterrows():
     items.append({
-        "image_url": row["imageURL"],
+        "image_url": row["link"],
         "title": row["productDisplayName"],
         "category": row["articleType"],
         "color": row["baseColour"],

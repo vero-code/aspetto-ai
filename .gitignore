@@ -26,3 +26,7 @@ Thumbs.db
 # Data
 fashion_sample.csv
 service-account-key.json
+
+# Ignore large/full datasets
+*.csv
+!*_sample.csv

@@ -30,7 +30,8 @@ async def analyze_image(file: UploadFile = File(...)):
     doc = {
         "image_filename": file.filename,
         "tags": tags,
-        "vector": None
+        "vector": None,
+        "source": "user"
     }
 
     print("💾 Save the result in MongoDB...")
