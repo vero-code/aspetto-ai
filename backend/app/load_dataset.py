@@ -18,6 +18,8 @@ images_df = pd.read_csv("data/images.csv")
 images_df["id"] = images_df["filename"].str.replace(".jpg", "", regex=False).astype(int)
 merged_df = pd.merge(styles_df, images_df, on="id")
 
+merged_df = merged_df.head(1000)
+
 items = []
 for _, row in merged_df.iterrows():
     items.append({
@@ -27,7 +29,8 @@ for _, row in merged_df.iterrows():
         "color": row["baseColour"],
         "gender": row["gender"],
         "style_tags": [row["usage"], row["season"]],
-        "vector": None
+        "vector": None,
+        "source": "dataset"
     })
 
 collection.insert_many(items)
