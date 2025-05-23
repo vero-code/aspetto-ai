@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from .vision_ai import analyze_image_bytes, generate_vector
 from .mongodb import collection
+from .gemini_ai import generate_style_advice
 
 app = FastAPI()
 
@@ -90,3 +91,12 @@ async def search_by_text(request: Request):
         })
 
     return {"results": response}
+
+@app.post("/suggest/")
+async def suggest_advice(request: Request):
+    data = await request.json()
+
+    print("🎨 Generating advice for:", data)
+    advice = generate_style_advice(data)
+
+    return {"advice": advice}
