@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from .vision_ai import analyze_image_bytes
+from .vision_ai import analyze_image_bytes, generate_vector
 from .mongodb import collection
 
 app = FastAPI()
@@ -27,10 +27,13 @@ async def analyze_image(file: UploadFile = File(...)):
     tags = analyze_image_bytes(image_bytes)
     print("🏷️ Tags from Vision API:", tags)
 
+    print("Generating vector from tags")
+    vector = generate_vector(tags)
+
     doc = {
         "image_filename": file.filename,
         "tags": tags,
-        "vector": None,
+        "vector": vector,
         "source": "user"
     }
 
@@ -38,4 +41,4 @@ async def analyze_image(file: UploadFile = File(...)):
     collection.insert_one(doc)
 
     print("✅ Everything is ready. Return the result.")
-    return {"tags": tags}
+    return {"tags": tags, "vector": vector}
