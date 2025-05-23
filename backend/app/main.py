@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from .vision_ai import analyze_image_bytes, generate_vector
 from .mongodb import collection
@@ -42,3 +42,51 @@ async def analyze_image(file: UploadFile = File(...)):
 
     print("✅ Everything is ready. Return the result.")
     return {"tags": tags, "vector": vector}
+
+@app.post("/search/")
+async def search_by_text(request: Request):
+    data = await request.json()
+    query = data.get("query")
+
+    if not query:
+        return {"error": "No query provided"}
+
+    print(f"🔍 Search query received: {query}")
+
+    tags = [tag.strip() for tag in query.split(",") if tag.strip()]
+    print(f"🧠 Parsed tags: {tags}")
+
+    query_vector = generate_vector(tags)
+    print(f"🔢 Vector generated for query")
+
+    results = collection.aggregate([
+        {
+            "$vectorSearch": {
+                "queryVector": query_vector,
+                "path": "vector",
+                "numCandidates": 100,
+                "limit": 5,
+                "index": "vector_index"
+            }
+        },
+        {
+            "$project": {
+                "image_url": 1,
+                "title": 1,
+                "style_tags": 1,
+                "score": { "$meta": "vectorSearchScore" }
+            }
+        }
+    ])
+
+    response = []
+    for doc in results:
+        print("📄 RAW result:", doc)
+        response.append({
+            "image_url": doc.get("image_url", "❌ no image_url"),
+            "title": doc.get("title", "❌ no title"),
+            "style_tags": doc.get("style_tags", []),
+            "score": doc.get("score", "❌ no score")
+        })
+
+    return {"results": response}
