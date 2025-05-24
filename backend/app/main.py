@@ -20,6 +20,11 @@ def read_root():
 
 @app.post("/analyze/")
 async def analyze_image(file: UploadFile = File(...)):
+    """
+    Accepts an uploaded image, parses it using the Vision API,
+    generates a vector based on the received tags, stores the results in MongoDB
+    and returns the tags and vector.
+    """
     print("📥 File received:", file.filename)
 
     image_bytes = await file.read()
@@ -43,6 +48,50 @@ async def analyze_image(file: UploadFile = File(...)):
 
     print("✅ Everything is ready. Return the result.")
     return {"tags": tags, "vector": vector}
+
+@app.post("/search_image/")
+async def search_by_image(file: UploadFile = File(...)):
+    print("📷 Image received for search:", file.filename)
+
+    image_bytes = await file.read()
+    print("🧠 Analyzing image with Vision API...")
+
+    tags = analyze_image_bytes(image_bytes)
+    print("🏷️ Tags extracted:", tags)
+
+    vector = generate_vector(tags)
+    print("🔢 Vector created from image")
+
+    results = collection.aggregate([
+        {
+            "$vectorSearch": {
+                "queryVector": vector,
+                "path": "vector",
+                "numCandidates": 100,
+                "limit": 5,
+                "index": "vector_index"
+            }
+        },
+        {
+            "$project": {
+                "image_url": 1,
+                "title": 1,
+                "style_tags": 1,
+                "score": { "$meta": "vectorSearchScore" }
+            }
+        }
+    ])
+
+    response = []
+    for doc in results:
+        response.append({
+            "image_url": doc.get("image_url"),
+            "title": doc.get("title"),
+            "style_tags": doc.get("style_tags", []),
+            "score": doc.get("score")
+        })
+
+    return {"tags": tags, "results": response}
 
 @app.post("/search/")
 async def search_by_text(request: Request):
