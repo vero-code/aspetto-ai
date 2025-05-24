@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from .vision_ai import analyze_image_bytes, generate_vector
 from .mongodb import collection
-from .gemini_ai import generate_style_advice
+from .gemini_vision_ai import generate_vision_advice_from_bytes as generate_vision_advice_from_image
 
 app = FastAPI()
 
@@ -48,50 +48,6 @@ async def analyze_image(file: UploadFile = File(...)):
 
     print("✅ Everything is ready. Return the result.")
     return {"tags": tags, "vector": vector}
-
-@app.post("/search_image/")
-async def search_by_image(file: UploadFile = File(...)):
-    print("📷 Image received for search:", file.filename)
-
-    image_bytes = await file.read()
-    print("🧠 Analyzing image with Vision API...")
-
-    tags = analyze_image_bytes(image_bytes)
-    print("🏷️ Tags extracted:", tags)
-
-    vector = generate_vector(tags)
-    print("🔢 Vector created from image")
-
-    results = collection.aggregate([
-        {
-            "$vectorSearch": {
-                "queryVector": vector,
-                "path": "vector",
-                "numCandidates": 100,
-                "limit": 5,
-                "index": "vector_index"
-            }
-        },
-        {
-            "$project": {
-                "image_url": 1,
-                "title": 1,
-                "style_tags": 1,
-                "score": { "$meta": "vectorSearchScore" }
-            }
-        }
-    ])
-
-    response = []
-    for doc in results:
-        response.append({
-            "image_url": doc.get("image_url"),
-            "title": doc.get("title"),
-            "style_tags": doc.get("style_tags", []),
-            "score": doc.get("score")
-        })
-
-    return {"tags": tags, "results": response}
 
 @app.post("/search/")
 async def search_by_text(request: Request):
@@ -141,11 +97,12 @@ async def search_by_text(request: Request):
 
     return {"results": response}
 
-@app.post("/suggest/")
-async def suggest_advice(request: Request):
-    data = await request.json()
-
-    print("🎨 Generating advice for:", data)
-    advice = generate_style_advice(data)
-
-    return {"advice": advice}
+@app.post("/vision/")
+async def style_from_image(file: UploadFile = File(...)):
+    try:
+        image_bytes = await file.read()
+        advice = generate_vision_advice_from_image(image_bytes)
+        return {"response": advice}
+    except Exception as e:
+        print("❌ Error in /vision/:", e)
+        return {"error": str(e)}

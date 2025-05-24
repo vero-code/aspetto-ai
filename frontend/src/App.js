@@ -1,15 +1,14 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import './App.css';
 
 function App() {
   const [image, setImage] = useState(null);
-  const [tags, setTags] = useState([]);
   const [results, setResults] = useState([]);
-  const [advice, setAdvice] = useState("");
   const [textQuery, setTextQuery] = useState("");
   const [analyzeTags, setAnalyzeTags] = useState([]);
   const [vectorPreview, setVectorPreview] = useState([]);
+  const [visionResponse, setVisionResponse] = useState("");
 
   const API = process.env.REACT_APP_API_BASE || "http://127.0.0.1:8000";
 
@@ -30,36 +29,8 @@ function App() {
       setAnalyzeTags(res.data.tags);
       setVectorPreview(res.data.vector.slice(0, 5));
       setResults([]);
-      setAdvice("");
     } catch (err) {
       console.error("Analyze error:", err);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!image) return alert("Upload an image first");
-    const formData = new FormData();
-    formData.append("file", image);
-
-    try {
-      const res = await axios.post(`${API}/search_image/`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      setTags(res.data.tags);
-      setResults(res.data.results);
-
-      const suggestInput = {
-        title: res.data.results[0]?.title || "Item",
-        style_tags: res.data.results[0]?.style_tags || [],
-        color: "Unknown",
-        gender: "Unisex",
-      };
-
-      const suggestion = await axios.post(`${API}/suggest/`, suggestInput);
-      setAdvice(suggestion.data.advice);
-    } catch (err) {
-      console.error("Upload error:", err);
     }
   };
 
@@ -67,16 +38,29 @@ function App() {
     try {
       const res = await axios.post(`${API}/search/`, { query: textQuery });
       setResults(res.data.results);
-      setAdvice("");
     } catch (err) {
       console.error("Text search error:", err);
+    }
+  };
+
+  const handleGeminiVision = async () => {
+    const formData = new FormData();
+    formData.append("file", image);
+
+    try {
+      const res = await axios.post(`${API}/vision/`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setVisionResponse(res.data.response);
+    } catch (err) {
+      console.error("Gemini Vision error:", err);
+      setVisionResponse("❌ Failed to get vision response.");
     }
   };
 
   return (
     <div className="App">
       <h1>🧠 AI Stylist</h1>
-
       <div style={{ display: "flex", gap: "2rem", padding: "2rem" }}>
         {/* Left Column */}
         <div style={{ flex: "1", maxWidth: "300px" }}>
@@ -95,11 +79,11 @@ function App() {
             </div>
           )}
 
-          {/* analyze/ */}
-          <button onClick={handleAnalyze} style={{ marginTop: "1rem" }}>Analyze Only</button>
+          {/* vision/ */}
+          <button onClick={handleGeminiVision}>Try Gemini Vision</button>
 
-          {/* search_image */}
-          <button onClick={handleUpload} style={{ marginTop: "0.5rem" }}>Upload & Analyze</button>
+          {/* analyze/ */}
+          <button onClick={handleAnalyze} style={{ marginTop: "1rem" }}>Save in collection</button>
 
           {/* search/ */}
           <div style={{ marginTop: "1.5rem" }}>
@@ -126,13 +110,7 @@ function App() {
             </>
           )}
 
-          {tags.length > 0 && (
-            <>
-              <h3>🏷️ Tags from upload:</h3>
-              <ul>{tags.map((tag, i) => <li key={i}>{tag}</li>)}</ul>
-            </>
-          )}
-
+          {/* analyze/, search/ */}
           {results.length > 0 && (
             <>
               <h3>🖼️ Similar Items:</h3>
@@ -149,14 +127,14 @@ function App() {
             </>
           )}
 
-          {advice && (
+          {/* vision/ */}
+          {visionResponse && (
             <>
-              <h3>💡 Style Advice:</h3>
-              <p>{advice}</p>
+              <h3>🧠 Gemini Vision Result:</h3>
+              <p>{visionResponse}</p>
             </>
           )}
         </div>
-
       </div>
     </div>
   );
