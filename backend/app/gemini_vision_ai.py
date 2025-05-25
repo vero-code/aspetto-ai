@@ -1,9 +1,11 @@
+# backend/app/gemini_vision_ai.py
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
 import io
 from PIL import Image
 import re
+from scripts.embeddings.generate_vector import generate_vector_from_title
 
 load_dotenv()
 
@@ -53,6 +55,11 @@ def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
 
         full_text = response.text
         parsed = parse_structured_item(full_text)
+
+        # 🧠 Generate vector by name
+        if parsed and parsed.get("title"):
+            vector = generate_vector_from_title(parsed["title"])
+            parsed["vector"] = vector
 
         return {
             "full_advice": full_text,
