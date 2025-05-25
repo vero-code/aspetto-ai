@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import io
 from PIL import Image
+import re
 
 load_dotenv()
 
@@ -20,17 +21,63 @@ genai.configure(api_key=api_key)
 
 MODEL_ID = "models/gemini-1.5-pro-latest";
 
-def generate_vision_advice_from_bytes(image_bytes, prompt: str = "Suggest a fashionable outfit that complements this item"):
-    """Generates a text response from an image using Gemini Pro Vision."""
+def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
+    """Generates styling advice + one structured fashion item (name, description, tags) from an image."""
     try:
         image = Image.open(io.BytesIO(image_bytes))
         image = image.convert("RGB")
 
         model = genai.GenerativeModel(MODEL_ID)
-        response = model.generate_content([prompt, image])
 
-        return response.text
+        prompt = (
+            "You are a fashion stylist. Analyze the uploaded clothing item and give a few style suggestions — "
+            "what to wear it with and how.\n\n"
+            "After the advice, choose ONE SINGLE fashion item (from the suggestions) to highlight.\n"
+            "🛑 IMPORTANT:\n"
+            "- The item must be a standalone fashion item (e.g., 'shirt', 'skirt', 'bag', 'shoes').\n"
+            "- Do NOT include full outfits or multiple items.\n"
+            "- Then, output exactly this structure, on new lines:\n\n"
+            "Name: ...\n"
+            "Description: ...\n"
+            "Tags: ... (comma-separated keywords)"
+        )
+
+        response = model.generate_content(
+            [prompt, image],
+            generation_config={
+                "temperature": 1.0,
+                "top_p": 0.95,
+                "max_output_tokens": 8192
+            }
+        )
+
+        full_text = response.text
+        parsed = parse_structured_item(full_text)
+
+        return {
+            "full_advice": full_text,
+            "parsed_item": parsed
+        }
 
     except Exception as e:
-        print(f"Error processing request: {e}")
+        print(f"❌ Error in Gemini Vision processing: {e}")
+        return {"error": str(e)}
+
+def parse_structured_item(response_text: str):
+    """Extracts the Title, Description, and Tags from the end of the Gemini response."""
+    match = re.search(r"Name:\s*.+?Tags:\s*.+", response_text, re.DOTALL | re.IGNORECASE)
+    if match:
+        structured_block = match.group(0)
+        pattern = r"Name:\s*(.+?)\s*Description:\s*(.+?)\s*Tags:\s*(.+)"
+        inner = re.search(pattern, structured_block, re.DOTALL | re.IGNORECASE)
+        if inner:
+            title = inner.group(1).strip()
+            description = inner.group(2).strip()
+            tags = [tag.strip() for tag in inner.group(3).split(",") if tag.strip()]
+            return {
+                "title": title,
+                "description": description,
+                "tags": tags
+            }
+    else:
         return None

@@ -9,6 +9,8 @@ function App() {
   const [analyzeTags, setAnalyzeTags] = useState([]);
   const [vectorPreview, setVectorPreview] = useState([]);
   const [visionResponse, setVisionResponse] = useState("");
+  const [visionAdvice, setVisionAdvice] = useState("");
+  const [visionItem, setVisionItem] = useState(null);
 
   const API = process.env.REACT_APP_API_BASE || "http://127.0.0.1:8000";
 
@@ -51,10 +53,13 @@ function App() {
       const res = await axios.post(`${API}/vision/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setVisionResponse(res.data.response);
+
+      setVisionAdvice(res.data.response.full_advice);
+      setVisionItem(res.data.response.parsed_item);
     } catch (err) {
       console.error("Gemini Vision error:", err);
       setVisionResponse("❌ Failed to get vision response.");
+      setVisionItem(null);
     }
   };
 
@@ -128,10 +133,19 @@ function App() {
           )}
 
           {/* vision/ */}
-          {visionResponse && (
+          {visionAdvice && (
             <>
               <h3>🧠 Gemini Vision Result:</h3>
-              <p>{visionResponse}</p>
+              <p>{visionAdvice}</p>
+
+              {visionItem && (
+                <div style={{ marginTop: "1rem", padding: "1rem", background: "#f3f3f3", borderRadius: "8px" }}>
+                  <h4>🎯 Highlighted Recommendation</h4>
+                  <p><strong>Name:</strong> {visionItem.title}</p>
+                  <p><strong>Description:</strong> {visionItem.description}</p>
+                  <p><strong>Tags:</strong> {visionItem.tags.join(", ")}</p>
+                </div>
+              )}
             </>
           )}
         </div>
