@@ -31,7 +31,7 @@ def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
         image = Image.open(io.BytesIO(image_bytes))
         image = image.convert("RGB")
 
-        model = genai.GenerativeModel(MODEL_ID)
+        gemini_model = genai.GenerativeModel(MODEL_ID)
 
         prompt = (
             "You are a fashion stylist. Analyze the uploaded clothing item and give a few style suggestions — "
@@ -46,7 +46,7 @@ def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
             "Tags: ... (comma-separated keywords)"
         )
 
-        response = model.generate_content(
+        response = gemini_model.generate_content(
             [prompt, image],
             generation_config={
                 "temperature": 1.0,

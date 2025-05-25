@@ -1,6 +1,8 @@
+# backend/app/vision_ai.py
 from google.cloud import vision
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
+from functools import lru_cache
 import os
 
 load_dotenv()
@@ -12,25 +14,23 @@ if not key_path or not os.path.exists(key_path):
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
 
-try:
+@lru_cache()
+def get_vision_client():
     print("⚙️ [vision_ai] Initialize the Vision API client...")
     client = vision.ImageAnnotatorClient()
     print("✅ [vision_ai] Vision API client is ready.")
-except Exception as e:
-    print(f"❌ [vision_ai] Error initializing Vision API: {e}")
-    raise e
+    return client
 
-try:
+@lru_cache()
+def get_embedding_model():
     print("⚙️ [vision_ai] Loading embedding model from Hugging Face...")
     model = SentenceTransformer("thenlper/gte-small")
     print("✅ [vision_ai] Model loaded.")
-except Exception as e:
-    print(f"❌ [vision_ai] Error initializing model in Hugging Face: {e}")
-    raise e
-
+    return model
 
 def analyze_image_bytes(image_bytes: bytes):
     print("📥 [vision_ai] Image bytes received...")
+    client = get_vision_client()
     image = vision.Image(content=image_bytes)
 
     print("📡 [vision_ai] Sending a request to the Vision API...")
@@ -46,6 +46,7 @@ def analyze_image_bytes(image_bytes: bytes):
 def generate_vector(tags: list[str]) -> list[float]:
     text = ", ".join(tags)
     print(f"🧠 [vision_ai] Generating vector for: {text}")
+    model = get_embedding_model()
     vector = model.encode([text])[0].tolist()
     print(f"✅ [vision_ai] Vector generated.")
     return vector
