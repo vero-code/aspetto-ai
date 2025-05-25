@@ -1,3 +1,5 @@
+# backend/scripts/embeddings/utils.py
+
 import logging
 import pandas as pd
 import pymongo
