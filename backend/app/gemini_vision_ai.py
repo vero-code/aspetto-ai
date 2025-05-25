@@ -5,7 +5,9 @@ import os
 import io
 from PIL import Image
 import re
-from scripts.embeddings.generate_vector import generate_vector_from_title
+from app.generate_vector import generate_vector_from_title
+from app.vector_search import search_similar_items
+from app.vector_utils import clean_vector
 
 load_dotenv()
 
@@ -56,14 +58,19 @@ def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
         full_text = response.text
         parsed = parse_structured_item(full_text)
 
-        # 🧠 Generate vector by name
-        if parsed and parsed.get("title"):
+        if parsed:
             vector = generate_vector_from_title(parsed["title"])
-            parsed["vector"] = vector
+            vector = clean_vector(vector)
+            similar = search_similar_items(vector)
+        else:
+            vector = []
+            similar = []
 
         return {
             "full_advice": full_text,
-            "parsed_item": parsed
+            "parsed_item": parsed,
+            "vector": vector,
+            "similar_items": similar
         }
 
     except Exception as e:
@@ -71,7 +78,7 @@ def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
         return {"error": str(e)}
 
 def parse_structured_item(response_text: str):
-    """Extracts the Title, Description, and Tags from the end of the Gemini response."""
+    """Extracts the Name, Description, and Tags block from Gemini output."""
     match = re.search(r"Name:\s*.+?Tags:\s*.+", response_text, re.DOTALL | re.IGNORECASE)
     if match:
         structured_block = match.group(0)

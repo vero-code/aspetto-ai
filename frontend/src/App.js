@@ -1,3 +1,4 @@
+// frontend/src/App.js
 import { useState } from "react";
 import axios from "axios";
 import './App.css';
@@ -8,9 +9,9 @@ function App() {
   const [textQuery, setTextQuery] = useState("");
   const [analyzeTags, setAnalyzeTags] = useState([]);
   const [vectorPreview, setVectorPreview] = useState([]);
-  const [visionResponse, setVisionResponse] = useState("");
   const [visionAdvice, setVisionAdvice] = useState("");
   const [visionItem, setVisionItem] = useState(null);
+  const [similarToGemini, setSimilarToGemini] = useState([]);
 
   const API = process.env.REACT_APP_API_BASE || "http://127.0.0.1:8000";
 
@@ -56,9 +57,9 @@ function App() {
 
       setVisionAdvice(res.data.response.full_advice);
       setVisionItem(res.data.response.parsed_item);
+      setSimilarToGemini(res.data.response.similar_items || []);
     } catch (err) {
-      console.error("Gemini Vision error:", err);
-      setVisionResponse("❌ Failed to get vision response.");
+      console.error("❌ Gemini Vision failed to generate a response.", err);
       setVisionItem(null);
     }
   };
@@ -145,6 +146,22 @@ function App() {
                   <p><strong>Description:</strong> {visionItem.description}</p>
                   <p><strong>Tags:</strong> {visionItem.tags.join(", ")}</p>
                 </div>
+              )}
+
+              {similarToGemini.length > 0 && (
+                <>
+                  <h4>🧩 Similar Items from Collection</h4>
+                  <div className="results">
+                    {similarToGemini.map((item, i) => (
+                      <div key={i} className="card">
+                        <img src={item.image_url} alt={item.title} width="120" />
+                        <p><strong>{item.title}</strong></p>
+                        <p>{item.style_tags?.join(", ")}</p>
+                        <p><em>Score: {item.score?.toFixed(2)}</em></p>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </>
           )}

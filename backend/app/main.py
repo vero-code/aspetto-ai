@@ -1,3 +1,4 @@
+# backend/app/main.py
 from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from .vision_ai import analyze_image_bytes, generate_vector
@@ -101,8 +102,20 @@ async def search_by_text(request: Request):
 async def style_from_image(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
-        advice = generate_vision_advice_from_image(image_bytes)
-        return {"response": advice}
+        result = generate_vision_advice_from_image(image_bytes)
+
+        similar_items = result.get("similar_items", [])
+        for item in similar_items:
+            item["_id"] = str(item["_id"])
+
+        return {
+            "response": {
+                "full_advice": result["full_advice"],
+                "parsed_item": result["parsed_item"],
+                "similar_items": similar_items
+            }
+        }
+    
     except Exception as e:
         print("❌ Error in /vision/:", e)
         return {"error": str(e)}

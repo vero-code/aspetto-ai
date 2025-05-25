@@ -1,4 +1,4 @@
-# backend/scripts/embeddings/generate_vector.py
+# backend/app/generate_vector.py
 from sentence_transformers import SentenceTransformer
 import logging
 
