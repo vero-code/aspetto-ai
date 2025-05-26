@@ -6,8 +6,7 @@ import './App.css';
 function App() {
   const [image, setImage] = useState(null);
   const [visionAdvice, setVisionAdvice] = useState("");
-  const [visionItem, setVisionItem] = useState(null);
-  const [similarToGemini, setSimilarToGemini] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
 
   const API = process.env.REACT_APP_API_BASE || "http://127.0.0.1:8000";
 
@@ -25,11 +24,10 @@ function App() {
       });
 
       setVisionAdvice(res.data.response.full_advice);
-      setVisionItem(res.data.response.parsed_item);
-      setSimilarToGemini(res.data.response.similar_items || []);
+      setRecommendations(res.data.response.results || []);
     } catch (err) {
       console.error("❌ Gemini Vision failed to generate a response.", err);
-      setVisionItem(null);
+      setRecommendations([]);
     }
   };
 
@@ -54,44 +52,53 @@ function App() {
             </div>
           )}
 
-          {/* vision/ */}
           <button onClick={handleGeminiVision}>Try Gemini Vision</button>
         </div>
 
         {/* Right Column */}
         <div style={{ flex: "2" }}>
-          {/* vision/ */}
           {visionAdvice && (
             <>
               <h3>🧠 Gemini Vision Result:</h3>
               <p>{visionAdvice}</p>
 
-              {visionItem && (
-                <div style={{ marginTop: "1rem", padding: "1rem", background: "#f3f3f3", borderRadius: "8px" }}>
-                  <h4>🎯 Highlighted Recommendation</h4>
-                  <p><strong>Title:</strong> {visionItem.title}</p>
-                  <p><strong>Category:</strong> {visionItem.category}</p>
-                  <p><strong>Color:</strong> {visionItem.color}</p>
-                  <p><strong>Gender:</strong> {visionItem.gender}</p>
-                  <p><strong>Style Tags:</strong> {visionItem.style_tags?.join(", ") || "—"}</p>
-                </div>
-              )}
+              {recommendations.map((block, i) => (
+                <div
+                  key={i}
+                  style={{
+                    marginTop: "2rem",
+                    padding: "1rem",
+                    background: "#f9f9f9",
+                    borderRadius: "8px",
+                    border: "1px solid #ddd"
+                  }}
+                >
+                  <h4>🎯 Recommendation #{i + 1}</h4>
+                  <p><strong>Title:</strong> {block.item.title}</p>
+                  <p><strong>Category:</strong> {block.item.category}</p>
+                  <p><strong>Color:</strong> {block.item.color}</p>
+                  <p><strong>Gender:</strong> {block.item.gender}</p>
+                  <p><strong>Style Tags:</strong> {block.item.style_tags.join(", ")}</p>
 
-              {similarToGemini.length > 0 && (
-                <>
-                  <h4>🧩 Similar Items from Collection</h4>
-                  <div className="results">
-                    {similarToGemini.map((item, i) => (
-                      <div key={i} className="card">
-                        <img src={item.image_url} alt={item.title} width="120" />
-                        <p><strong>{item.title}</strong></p>
-                        <p>{item.style_tags?.join(", ")}</p>
-                        <p><em>Score: {item.score?.toFixed(2)}</em></p>
+                  {block.similar_items?.length > 0 ? (
+                    <>
+                      <h5>🧩 Similar Items</h5>
+                      <div className="results">
+                        {block.similar_items.map((item, j) => (
+                          <div key={j} className="card">
+                            <img src={item.image_url} alt={item.title} width="120" />
+                            <p><strong>{item.title}</strong></p>
+                            <p>{item.style_tags?.join(", ")}</p>
+                            <p><em>Score: {item.score?.toFixed(2)}</em></p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </>
-              )}
+                    </>
+                  ) : (
+                    <p>No similar items found.</p>
+                  )}
+                </div>
+              ))}
             </>
           )}
         </div>

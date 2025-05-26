@@ -24,15 +24,15 @@ async def style_from_image(file: UploadFile = File(...)):
         image_bytes = await file.read()
         result = generate_vision_advice_from_image(image_bytes)
 
-        similar_items = result.get("similar_items", [])
-        for item in similar_items:
-            item["_id"] = str(item["_id"])
+        results = result.get("results", [])
+        for block in results:
+            for item in block.get("similar_items", []):
+                item["_id"] = str(item["_id"])
 
         return {
             "response": {
                 "full_advice": result["full_advice"],
-                "parsed_item": result["parsed_item"],
-                "similar_items": similar_items
+                "results": results
             }
         }
     
