@@ -26,7 +26,7 @@ genai.configure(api_key=api_key)
 MODEL_ID = "models/gemini-1.5-pro-latest";
 
 def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
-    """Generates styling advice + one structured fashion item (name, description, tags) from an image."""
+    """Generates styling advice + one structured fashion item from an image."""
     try:
         image = Image.open(io.BytesIO(image_bytes))
         image = image.convert("RGB")
@@ -41,9 +41,11 @@ def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
             "- The item must be a standalone fashion item (e.g., 'shirt', 'skirt', 'bag', 'shoes').\n"
             "- Do NOT include full outfits or multiple items.\n"
             "- Then, output exactly this structure, on new lines:\n\n"
-            "Name: ...\n"
-            "Description: ...\n"
-            "Tags: ... (comma-separated keywords)"
+            "Title: ...\n"
+            "Category: ... (e.g., Shirts, Dresses, Bags — 1 word category)\n"
+            "Color: ... (dominant color or best-matching color)\n"
+            "Gender: ... (Men or Women)\n"
+            "Style Tags: ... (comma-separated keywords)"
         )
 
         response = gemini_model.generate_content(
@@ -60,11 +62,18 @@ def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
 
         if parsed:
             vector = generate_vector_from_text_fields(
-                parsed["title"],
-                parsed["description"],
-                parsed["tags"]
+                title=parsed["title"],
+                category=parsed.get("category"),
+                color=parsed.get("color"),
+                gender=parsed.get("gender"),
+                style_tags=parsed["style_tags"],
             )
-            similar = search_similar_items(vector)
+            similar = search_similar_items(
+                vector,
+                category=parsed.get("category"),
+                color=parsed.get("color"),
+                gender=parsed.get("gender"),
+            )
         else:
             vector = []
             similar = []
@@ -81,20 +90,21 @@ def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
         return {"error": str(e)}
 
 def parse_structured_item(response_text: str):
-    """Extracts the Name, Description, and Tags block from Gemini output."""
-    match = re.search(r"Name:\s*.+?Tags:\s*.+", response_text, re.DOTALL | re.IGNORECASE)
+    """Extracts structured item fields from Gemini output."""
+    pattern = (
+        r"Title:\s*(.+?)\s*"
+        r"Category:\s*(.+?)\s*"
+        r"Color:\s*(.+?)\s*"
+        r"Gender:\s*(.+?)\s*"
+        r"Style Tags:\s*(.+)"
+    )
+    match = re.search(pattern, response_text, re.DOTALL | re.IGNORECASE)
     if match:
-        structured_block = match.group(0)
-        pattern = r"Name:\s*(.+?)\s*Description:\s*(.+?)\s*Tags:\s*(.+)"
-        inner = re.search(pattern, structured_block, re.DOTALL | re.IGNORECASE)
-        if inner:
-            title = inner.group(1).strip()
-            description = inner.group(2).strip()
-            tags = [tag.strip() for tag in inner.group(3).split(",") if tag.strip()]
-            return {
-                "title": title,
-                "description": description,
-                "tags": tags
-            }
-    else:
-        return None
+        return {
+            "title": match.group(1).strip(),
+            "category": match.group(2).strip(),
+            "color": match.group(3).strip(),
+            "gender": match.group(4).strip(),
+            "style_tags": [t.strip() for t in match.group(5).split(",") if t.strip()]
+        }
+    return None
