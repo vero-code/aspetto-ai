@@ -1,15 +1,15 @@
 # backend/scripts/embeddings/build_text.py
 
-def build_text_for_embedding(doc: dict) -> str:
+def build_text_from_row(row: dict) -> str:
     """
-    Assembles a text string from document fields to generate an embedding.
+    Converts a pandas row (from CSV) into a unified string for embedding.
     """
     parts = [
-        str(doc.get("title", "")),
-        str(doc.get("category", "")),
-        str(doc.get("color", "")),
-        str(doc.get("gender", "")),
-        ", ".join(str(tag) for tag in doc.get("style_tags", []))
+        str(row.get("productDisplayName", "")),
+        str(row.get("articleType", "")),
+        str(row.get("baseColour", "")),
+        str(row.get("gender", "")),
+        str(row.get("usage", "")),
+        str(row.get("season", ""))
     ]
-
-    return " | ".join(part for part in parts if part)
+    return " | ".join(p for p in parts if p)
