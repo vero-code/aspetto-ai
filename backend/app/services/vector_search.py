@@ -13,39 +13,41 @@ def search_similar_items(
     """Searches for similar fashion items in MongoDB using vector search with optional filters."""
     print("🔍 Searching MongoDB for similar items...")
 
-    # Optional filters
-    filter_conditions = {}
-    if category:
-        filter_conditions["category"] = category
-    if color:
-        filter_conditions["color"] = color
-    if gender:
-        filter_conditions["gender"] = gender
-
-    # Vector search
-    pipeline = [
-        {
-            "$vectorSearch": {
-                "queryVector": vector,
-                "path": "vector",
-                "numCandidates": 100,
-                "limit": limit,
-                "index": "vector_index",
-                "filter": filter_conditions or {}
-            }
-        },
-        {
-            "$project": {
-                "title": 1,
-                "image_url": 1,
-                "style_tags": 1,
-                "score": {"$meta": "vectorSearchScore"}
-            }
-        }
+    # Try stricter filter first
+    priority_filters = [
+        {"category": category, "color": color, "gender": gender},
+        {"category": category, "gender": gender},
+        {"category": category},
+        {}
     ]
 
-    results = get_collection().aggregate(pipeline)
+    for f in priority_filters:
+        filtered = {k: v for k, v in f.items() if v}
+        pipeline = [
+            {
+                "$vectorSearch": {
+                    "queryVector": vector,
+                    "path": "vector",
+                    "numCandidates": 100,
+                    "limit": limit,
+                    "index": "vector_index",
+                    "filter": filtered
+                }
+            },
+            {
+                "$project": {
+                    "title": 1,
+                    "image_url": 1,
+                    "style_tags": 1,
+                    "score": {"$meta": "vectorSearchScore"}
+                }
+            }
+        ]
 
-    similar_items = list(results)
-    print(f"✅ Found {len(similar_items)} similar items.")
-    return similar_items
+        results = list(get_collection().aggregate(pipeline))
+        if results:
+            print(f"✅ Found {len(results)} with filter: {filtered}")
+            return results
+
+    print("❌ No matches found with any filter.")
+    return []
