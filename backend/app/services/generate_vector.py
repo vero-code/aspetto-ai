@@ -1,4 +1,5 @@
-# backend/app/generate_vector.py
+# backend/app/services/generate_vector.py
+
 from sentence_transformers import SentenceTransformer
 import logging
 from functools import lru_cache

@@ -1,13 +1,13 @@
-# backend/app/gemini_vision_ai.py
+# backend/app/gemini/vision.py
+
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
 import io
 from PIL import Image
 import re
-from app.generate_vector import generate_vector_from_title
-from app.vector_search import search_similar_items
-from app.vector_utils import clean_vector
+from app.services.generate_vector import generate_vector_from_title
+from app.services.vector_search import search_similar_items
 
 load_dotenv()
 
@@ -60,7 +60,6 @@ def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
 
         if parsed:
             vector = generate_vector_from_title(parsed["title"])
-            vector = clean_vector(vector)
             similar = search_similar_items(vector)
         else:
             vector = []
