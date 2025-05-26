@@ -1,4 +1,4 @@
-# backend/scripts/embeddings/generate_vectors_to_csv.py
+# backend/scripts/prepare/embedding/generate_vectors_to_csv.py
 
 import pandas as pd
 from sentence_transformers import SentenceTransformer

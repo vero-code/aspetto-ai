@@ -1,4 +1,4 @@
-# backend/scripts/embeddings/build_text.py
+# backend/scripts/prepare/embedding/build_text.py
 
 def build_text_from_row(row: dict) -> str:
     """

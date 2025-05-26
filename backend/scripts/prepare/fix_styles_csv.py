@@ -1,3 +1,5 @@
+# backend/scripts/prepare/fix_styles_csv.py
+
 import csv
 
 input_path = "data/styles.csv"
