@@ -11,11 +11,15 @@ def get_embedding_model():
     logging.info("⚙️ Loading gte-small model from Hugging Face (lazy)...")
     return SentenceTransformer("thenlper/gte-small")
 
-def generate_vector_from_title(title: str) -> list[float]:
-    """Returns a vector embedding for a title using gte-small."""
+def generate_vector_from_text_fields(title: str, description: str, tags: list[str]) -> list[float]:
+    """Generates vector using title + description + tags."""
+    text = " | ".join([
+        title.strip(),
+        description.strip(),
+        ", ".join(tags)
+    ])
     logging.info(f"🔠 Generating vector for: {title}")
     model = get_embedding_model()
-    vector = model.encode([title])[0].tolist()
+    vector = model.encode([text])[0].tolist()
     logging.info("✅ Vector generated.")
-    print("🧬 Vector preview:", vector[:5])
     return vector

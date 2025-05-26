@@ -6,7 +6,7 @@ import os
 import io
 from PIL import Image
 import re
-from app.services.generate_vector import generate_vector_from_title
+from app.services.generate_vector import generate_vector_from_text_fields
 from app.services.vector_search import search_similar_items
 
 load_dotenv()
@@ -59,7 +59,11 @@ def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
         parsed = parse_structured_item(full_text)
 
         if parsed:
-            vector = generate_vector_from_title(parsed["title"])
+            vector = generate_vector_from_text_fields(
+                parsed["title"],
+                parsed["description"],
+                parsed["tags"]
+            )
             similar = search_similar_items(vector)
         else:
             vector = []
