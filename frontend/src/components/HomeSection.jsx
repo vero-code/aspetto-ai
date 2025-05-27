@@ -2,6 +2,7 @@ import { useState } from 'react';
 import axios from "axios";
 import UploadSection from './UploadSection.jsx';
 import { BoltIcon } from '@heroicons/react/24/outline'
+import HomeSectionHeader from './HomeSectionHeader.jsx'
 
 export default function HomeSection() {
   const [image, setImage] = useState(null);
@@ -29,16 +30,8 @@ export default function HomeSection() {
 
   return (
     <div>
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl lg:text-center">
-          <h2 className="text-base/7 font-semibold text-indigo-600">Aspetto AI</h2>
-          <p className="mt-2 text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl lg:text-balance">
-            Everything you need to upgrade your style
-          </p>
-          <p className="mt-6 text-lg/8 text-gray-600">
-            Upload your item, and Gemini AI, along with the latest MongoDB vector search, will select exactly what suits you from a collection of 44,000 products.
-          </p>
-        </div>
+      <div className="w-full px-6 lg:px-8">
+        <HomeSectionHeader />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-12 mt-12">
           <UploadSection
             image={image}
@@ -46,10 +39,64 @@ export default function HomeSection() {
             onAnalyze={handleGeminiVision}
           />
           <div className="flex items-start gap-2 text-gray-600">
-            <BoltIcon className="w-5 h-5 mt-1 text-indigo-500" />
-            <p className="read-the-docs">
-              To see the tip, upload a photo and click the "Style This Look" button
-            </p>
+            {!visionAdvice && (
+              <>
+                <BoltIcon className="w-5 h-5 mt-1 text-indigo-500" />
+                <p className="read-the-docs">
+                  To see the tip, upload a photo and click the "Style This Look" button
+                </p>
+              </>
+            )}
+            
+
+            <div style={{ flex: "2" }}>
+              {visionAdvice && (
+                <>
+                  <h3 className="text-xl font-semibold mb-2">🧠 Gemini Vision Result:</h3>
+                  <p className="text-lg leading-relaxed mb-6">{visionAdvice}</p>
+
+                  <div className="max-h-[300px] overflow-y-auto space-y-6">
+                    {recommendations.map((block, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          marginTop: "2rem",
+                          padding: "1rem",
+                          background: "#f9f9f9",
+                          borderRadius: "8px",
+                          border: "1px solid #ddd"
+                        }}
+                      >
+                        <h4>🎯 Recommendation #{i + 1}</h4>
+                        <p><strong>Title:</strong> {block.item.title}</p>
+                        <p><strong>Category:</strong> {block.item.category}</p>
+                        <p><strong>Color:</strong> {block.item.color}</p>
+                        <p><strong>Gender:</strong> {block.item.gender}</p>
+                        <p><strong>Style Tags:</strong> {block.item.style_tags.join(", ")}</p>
+
+                        {block.similar_items?.length > 0 ? (
+                          <>
+                            <h5>🧩 Similar Items</h5>
+                            <div className="results">
+                              {block.similar_items.map((item, j) => (
+                                <div key={j} className="card">
+                                  <img src={item.image_url} alt={item.title} width="120" />
+                                  <p><strong>{item.title}</strong></p>
+                                  <p>{item.style_tags?.join(", ")}</p>
+                                  <p><em>Score: {item.score?.toFixed(2)}</em></p>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        ) : (
+                              <p>No similar items found.</p>
+                            )}
+                          </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
