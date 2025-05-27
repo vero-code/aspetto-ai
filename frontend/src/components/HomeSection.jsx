@@ -1,17 +1,26 @@
 import { useState } from 'react';
 import axios from "axios";
 import UploadSection from './UploadSection.jsx';
-import { BoltIcon } from '@heroicons/react/24/outline'
-import HomeSectionHeader from './HomeSectionHeader.jsx'
+import { BoltIcon } from '@heroicons/react/24/outline';
+import HomeSectionHeader from './HomeSectionHeader.jsx';
+import SpringModal from './SpringModal.jsx'; 
 
 export default function HomeSection() {
   const [image, setImage] = useState(null);
   const [visionAdvice, setVisionAdvice] = useState("");
   const [recommendations, setRecommendations] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 
   const handleGeminiVision = async () => {
+    if (!image) {
+      setIsModalOpen(true);
+      return;
+    }
+
+    setIsLoading(true);
     const formData = new FormData();
     formData.append("file", image);
 
@@ -25,6 +34,8 @@ export default function HomeSection() {
     } catch (err) {
       console.error("❌ App failed to generate a response.", err);
       setRecommendations([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -39,7 +50,13 @@ export default function HomeSection() {
             onAnalyze={handleGeminiVision}
           />
           <div className="flex items-start gap-2 text-gray-600">
-            {!visionAdvice && (
+            {isLoading && !visionAdvice && (
+              <div className="flex justify-center items-center w-full h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500" />
+              </div>
+            )}
+
+            {!visionAdvice && !isLoading && (
               <>
                 <BoltIcon className="w-5 h-5 mt-1 text-indigo-500" />
                 <p className="read-the-docs">
@@ -47,7 +64,6 @@ export default function HomeSection() {
                 </p>
               </>
             )}
-            
 
             <div style={{ flex: "2" }}>
               {visionAdvice && (
@@ -100,6 +116,7 @@ export default function HomeSection() {
           </div>
         </div>
       </div>
+      <SpringModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} />
     </div>
   )
 }

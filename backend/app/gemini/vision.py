@@ -71,8 +71,15 @@ def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
             }
         )
 
-        full_text = response.text
-        parsed_items = parse_structured_items(full_text)
+        full_response_text = response.text
+
+        cut_index = re.search(r"Item\s*1\s*:", full_response_text, re.IGNORECASE)
+        full_advice = (
+            full_response_text[:cut_index.start()].strip()
+            if cut_index else full_response_text.strip()
+        )
+
+        parsed_items = parse_structured_items(full_response_text)
 
         results = []
         for item in parsed_items:
@@ -96,7 +103,7 @@ def generate_vision_advice_from_bytes(image_bytes, prompt: str = None):
             })
 
         return {
-            "full_advice": full_text,
+            "full_advice": full_advice,
             "results": results
         }
 
