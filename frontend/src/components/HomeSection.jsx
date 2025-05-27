@@ -3,7 +3,8 @@ import axios from "axios";
 import UploadSection from './UploadSection.jsx';
 import { BoltIcon } from '@heroicons/react/24/outline';
 import HomeSectionHeader from './HomeSectionHeader.jsx';
-import SpringModal from './SpringModal.jsx'; 
+import SpringModal from './SpringModal.jsx';
+import ReactMarkdown from 'react-markdown';
 
 export default function HomeSection() {
   const [image, setImage] = useState(null);
@@ -43,11 +44,15 @@ export default function HomeSection() {
     <div>
       <div className="w-full px-6 lg:px-8">
         <HomeSectionHeader />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-12 mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-12 mt-12">
           <UploadSection
             image={image}
             setImage={setImage}
             onAnalyze={handleGeminiVision}
+            clearResults={() => {
+              setVisionAdvice("");
+              setRecommendations([]);
+            }}
           />
           <div className="flex items-start gap-2 text-gray-600">
             {isLoading && !visionAdvice && (
@@ -68,10 +73,18 @@ export default function HomeSection() {
             <div style={{ flex: "2" }}>
               {visionAdvice && (
                 <>
-                  <h3 className="text-xl font-semibold mb-2">🧠 Gemini Vision Result:</h3>
-                  <p className="text-lg leading-relaxed mb-6">{visionAdvice}</p>
+                  <div>
+                    <h2 className="text-xl font-semibold mb-2">
+                      🧠 Gemini Vision Result:
+                    </h2>
+                    <div className="mt-4 rounded-xl overflow-hidden bg-white shadow-md ring-1 ring-slate-200 p-6 max-w-3xl mx-auto">
+                      <div className="text-lg leading-relaxed mb-6 text-left">
+                        <ReactMarkdown>{visionAdvice}</ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
 
-                  <div className="max-h-[300px] overflow-y-auto space-y-6">
+                  <div className="overflow-y-auto space-y-6">
                     {recommendations.map((block, i) => (
                       <div
                         key={i}
