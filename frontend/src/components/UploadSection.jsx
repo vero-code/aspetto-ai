@@ -1,7 +1,8 @@
 import { useRef } from 'react';
 import RemoveImageButton from './RemoveImageButton';
 import PreviewImage from './PreviewImage';
-import SpotlightButton from './SpotlightButton';
+import { CloudArrowUpIcon } from '@heroicons/react/24/outline';
+import ButtonWrapper from './SpotlightButton';
 
 export default function UploadSection({ image, setImage, onAnalyze }) {
   const fileInputRef = useRef(null);
@@ -19,7 +20,10 @@ export default function UploadSection({ image, setImage, onAnalyze }) {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold">🎯 Upload & Search</h2>
+      <h2 className="text-lg font-semibold flex items-center gap-2">
+        <CloudArrowUpIcon className="w-5 h-5 text-indigo-600" />
+        Upload & Search
+      </h2>
 
       <div className="flex items-center gap-4 mt-2">
         <input
@@ -35,11 +39,9 @@ export default function UploadSection({ image, setImage, onAnalyze }) {
 
       <PreviewImage image={image} />
 
-      <div className="my-6 bg-slate-800 p-4 rounded-lg">
-        <SpotlightButton onClick={onAnalyze}>
-          ✨ Style This Look
-        </SpotlightButton>
-      </div>
+      <ButtonWrapper onClick={onAnalyze}>
+        ✨ Style This Look
+      </ButtonWrapper>
     </div>
   );
 }
