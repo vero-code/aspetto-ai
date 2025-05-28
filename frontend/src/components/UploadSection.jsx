@@ -9,7 +9,7 @@ export default function UploadSection({ image, setImage, onAnalyze, clearResults
   const [dragOver, setDragOver] = useState(false);
 
   const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
+    const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
       setImage(file);
     }
