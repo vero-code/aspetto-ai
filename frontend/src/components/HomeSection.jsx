@@ -5,6 +5,7 @@ import { BoltIcon } from '@heroicons/react/24/outline';
 import HomeSectionHeader from './HomeSectionHeader.jsx';
 import SpringModal from './SpringModal.jsx';
 import ReactMarkdown from 'react-markdown';
+import RecommendationsGrid from './RecommendationsGrid.jsx';
 
 export default function HomeSection() {
   const [image, setImage] = useState(null);
@@ -44,7 +45,7 @@ export default function HomeSection() {
     <div>
       <div className="w-full px-6 lg:px-8">
         <HomeSectionHeader />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-12 mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-[0.5fr_2.5fr] gap-x-5 gap-y-12 mt-12">
           <UploadSection
             image={image}
             setImage={setImage}
@@ -75,54 +76,16 @@ export default function HomeSection() {
                 <>
                   <div>
                     <h2 className="text-xl font-semibold mb-2">
-                      🧠 Gemini Vision Result:
+                      🧠 Your recommendations from AI stylist:
                     </h2>
-                    <div className="mt-4 rounded-xl overflow-hidden bg-white shadow-md ring-1 ring-slate-200 p-6 max-w-3xl mx-auto">
+                    <div className="mt-4 rounded-xl overflow-hidden bg-white shadow-md ring-1 ring-slate-200 p-6 max-w-7xl mx-auto">
                       <div className="text-lg leading-relaxed mb-6 text-left">
                         <ReactMarkdown>{visionAdvice}</ReactMarkdown>
                       </div>
                     </div>
                   </div>
 
-                  <div className="overflow-y-auto space-y-6">
-                    {recommendations.map((block, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          marginTop: "2rem",
-                          padding: "1rem",
-                          background: "#f9f9f9",
-                          borderRadius: "8px",
-                          border: "1px solid #ddd"
-                        }}
-                      >
-                        <h4>🎯 Recommendation #{i + 1}</h4>
-                        <p><strong>Title:</strong> {block.item.title}</p>
-                        <p><strong>Category:</strong> {block.item.category}</p>
-                        <p><strong>Color:</strong> {block.item.color}</p>
-                        <p><strong>Gender:</strong> {block.item.gender}</p>
-                        <p><strong>Style Tags:</strong> {block.item.style_tags.join(", ")}</p>
-
-                        {block.similar_items?.length > 0 ? (
-                          <>
-                            <h5>🧩 Similar Items</h5>
-                            <div className="results">
-                              {block.similar_items.map((item, j) => (
-                                <div key={j} className="card">
-                                  <img src={item.image_url} alt={item.title} width="120" />
-                                  <p><strong>{item.title}</strong></p>
-                                  <p>{item.style_tags?.join(", ")}</p>
-                                  <p><em>Score: {item.score?.toFixed(2)}</em></p>
-                                </div>
-                              ))}
-                            </div>
-                          </>
-                        ) : (
-                              <p>No similar items found.</p>
-                            )}
-                          </div>
-                    ))}
-                  </div>
+                  <RecommendationsGrid recommendations={recommendations} />
                 </>
               )}
             </div>

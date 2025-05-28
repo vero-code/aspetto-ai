@@ -1,6 +1,6 @@
 export default function HomeSectionHeader() {
   return (
-    <div className="mx-auto max-w-2xl text-center px-4">
+    <div className="mx-auto max-w-7xl text-center px-4">
       <h2 className="text-base font-semibold text-indigo-600">
         Aspetto AI
       </h2>
