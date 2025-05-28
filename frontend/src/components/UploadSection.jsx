@@ -46,7 +46,7 @@ export default function UploadSection({ image, setImage, onAnalyze, clearResults
 
   return (
     <div>
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-start">
         <div className="flex items-center justify-center gap-2">
           <CloudArrowUpIcon className="w-5 h-5 text-indigo-600" />
           <h2 className="text-xl font-semibold mb-2">
@@ -56,7 +56,7 @@ export default function UploadSection({ image, setImage, onAnalyze, clearResults
 
         {image ? (
           <div className=" flex text-center mt-4 mb-4">
-            <p className="mb-2 pr-30">✅ <strong>{image.name}</strong></p>
+            <p className="text-sm mb-2 pr-30">✅ <strong>{image.name}</strong></p>
             <RemoveImageButton visible={true} onClick={handleRemoveImage} />
           </div>
         ) : (

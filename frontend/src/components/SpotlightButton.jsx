@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 
 const ButtonWrapper = ({ children, onClick }) => {
   return (
-    <div className="flex min-h-[100px] justify-center items-center mt-4">
+    <div className="flex min-h-[100px] justify-start items-start mt-4">
       <SpotlightButton onClick={onClick}>
         {children}
       </SpotlightButton>
