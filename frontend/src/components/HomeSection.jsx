@@ -31,8 +31,16 @@ export default function HomeSection() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setVisionAdvice(formatVisionAdvice(res.data.response.full_advice));
-      setRecommendations(res.data.response.results || []);
+      const response = res.data?.response;
+
+      if (response?.full_advice) {
+        setVisionAdvice(formatVisionAdvice(response.full_advice));
+        setRecommendations(response.results || []);
+      } else {
+        console.error("⚠️ Missing 'full_advice' in response:", res.data);
+        setVisionAdvice("Sorry, app couldn't generate advice for this image.");
+        setRecommendations([]);
+      }
     } catch (err) {
       console.error("❌ App failed to generate a response.", err);
       setRecommendations([]);

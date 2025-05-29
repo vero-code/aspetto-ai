@@ -31,11 +31,18 @@ async def style_from_image(file: UploadFile = File(...)):
 
         return {
             "response": {
-                "full_advice": result["full_advice"],
+                "full_advice": result.get("full_advice", "No advice could be generated."),
                 "results": results
             }
         }
     
     except Exception as e:
+        import traceback
         print("❌ Error in /vision/:", e)
-        return {"error": str(e)}
+        traceback.print_exc()
+        return {
+            "response": {
+                "full_advice": "Sorry, the AI couldn't analyze the image due to server issues.",
+                "results": []
+            }
+        }

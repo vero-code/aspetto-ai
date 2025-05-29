@@ -1,0 +1,31 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+
+# Secrets
+.env
+.env.example
+service-account-key.json
+*.json
+
+# Logs
+*.log
+
+# Local data (CSV)
+data/
+
+# IDE / editor
+.idea/
+.vscode/
+
+# Version control system
+.git
+.DS_Store
+
+# Prepare files
+scripts/prepare/
+scripts/upload/
